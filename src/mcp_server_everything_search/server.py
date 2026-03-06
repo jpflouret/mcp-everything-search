@@ -1,6 +1,7 @@
 """MCP server implementation for cross-platform file search."""
 
 import json
+import os
 import platform
 import sys
 from typing import List
@@ -289,9 +290,8 @@ Search Syntax Guide:
                     **platform_params.dict() if platform_params else {}
                 )
             
-            return [TextContent(
-                type="text",
-                text="\n".join([
+            if not os.environ.get("SEARCH_COMPACT"):
+                text = "\n".join([
                     f"Path: {r.path}\n"
                     f"Filename: {r.filename}"
                     f"{f' ({r.extension})' if r.extension else ''}\n"
@@ -301,7 +301,10 @@ Search Syntax Guide:
                     f"Accessed: {r.accessed if r.accessed else 'N/A'}\n"
                     for r in results
                 ])
-            )]
+            else:
+                text = "\n".join(r.path for r in results)
+
+            return [TextContent(type="text", text=text)]
         except Exception as e:
             return [TextContent(
                 type="text",
